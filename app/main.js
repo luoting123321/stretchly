@@ -70,6 +70,7 @@ let welcomeWin = null
 let contributorPreferencesWin = null
 let syncPreferencesWin = null
 let myStretchlyWin = null
+let miniStatusWin = null
 let settings
 let pausedForSuspendOrLock = false
 let nextIdea = null
@@ -374,6 +375,7 @@ async function initialize (isAppStart = true) {
     functions: { pauseBreaks, resumeBreaks, skipToBreak, skipToMicrobreak, resetBreaks }
   })
 
+  createMiniStatusWindow()
   updateTray()
 }
 
@@ -487,6 +489,76 @@ function windowIconPath () {
   }
   const windowIconFileName = new AppIcon(params).windowIconFileName
   return join(__dirname, '/images/app-icons', windowIconFileName)
+}
+
+function createMiniStatusWindow () {
+  if (miniStatusWin) {
+    return
+  }
+  if (!settings.get('showMiniStatusWindow')) {
+    return
+  }
+
+  const miniStatusPath = 'file://' + join(__dirname, '/mini-status.html')
+
+  miniStatusWin = new BrowserWindow({
+    width: 100,
+    height: 100,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    hasShadow: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    focusable: false,
+    webPreferences: {
+      preload: join(__dirname, './mini-status-preload.mjs'),
+      sandbox: false
+    }
+  })
+
+  miniStatusWin.webContents.loadURL(miniStatusPath)
+
+  miniStatusWin.on('closed', () => {
+    miniStatusWin = null
+  })
+
+  // Initial position (bottom right, above tray usually)
+  const primaryDisplay = screen.getPrimaryDisplay()
+  const { width, height } = primaryDisplay.workAreaSize
+  miniStatusWin.setPosition(width - 120, height - 120)
+
+  miniStatusWin.once('ready-to-show', () => {
+    miniStatusWin.show()
+    updateMiniStatusWindow()
+  })
+}
+
+function updateMiniStatusWindow () {
+  if (!miniStatusWin) return
+
+  const isPaused = breakPlanner.isPaused ||
+      breakPlanner.dndManager.isOnDnd ||
+      breakPlanner.naturalBreaksManager.isSchedulerCleared ||
+      breakPlanner.appExclusionsManager.isSchedulerCleared
+
+  let status = 'running'
+  if (isPaused) {
+    status = 'paused'
+  } else if (breakPlanner.scheduler.reference === 'finishMicrobreak' || breakPlanner.scheduler.reference === 'finishBreak') {
+    status = 'break'
+  }
+
+  let timeLeft = 0
+  if (breakPlanner.scheduler) {
+    timeLeft = breakPlanner.scheduler.timeLeft
+  }
+
+  miniStatusWin.webContents.send('update-status', {
+    status,
+    targetTime: Date.now() + timeLeft,
+    color: settings.get('mainColor')
+  })
 }
 
 function startProcessWin () {
@@ -1206,6 +1278,7 @@ function updateTray () {
     }
 
     updateToolTip()
+    updateMiniStatusWindow()
 
     const newTrayIconPath = trayIconPath()
     if (newTrayIconPath !== currentTrayIconPath) {
@@ -1462,6 +1535,16 @@ ipcMain.on('save-setting', function (event, key, value) {
     autostartManager.setAutostartEnabled(value)
   } else {
     settings.set(key, value)
+  }
+
+  if (key === 'showMiniStatusWindow') {
+    if (value) {
+      createMiniStatusWindow()
+    } else {
+      if (miniStatusWin) {
+        miniStatusWin.close()
+      }
+    }
   }
 
   updateTray()
