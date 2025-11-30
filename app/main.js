@@ -537,16 +537,25 @@ function createMiniStatusWindow () {
 function updateMiniStatusWindow () {
   if (!miniStatusWin) return
 
-  const isPaused = breakPlanner.isPaused ||
-      breakPlanner.dndManager.isOnDnd ||
-      breakPlanner.naturalBreaksManager.isSchedulerCleared ||
-      breakPlanner.appExclusionsManager.isSchedulerCleared
+  const isBreak = breakPlanner.scheduler.reference === 'finishMicrobreak' || breakPlanner.scheduler.reference === 'finishBreak'
 
   let status = 'running'
-  if (isPaused) {
-    status = 'paused'
-  } else if (breakPlanner.scheduler.reference === 'finishMicrobreak' || breakPlanner.scheduler.reference === 'finishBreak') {
+  let text = ''
+
+  if (isBreak) {
     status = 'break'
+  } else if (breakPlanner.isPaused) {
+    status = 'paused'
+    text = 'PAUSED'
+  } else if (breakPlanner.dndManager.isOnDnd) {
+    status = 'paused'
+    text = 'DND'
+  } else if (breakPlanner.naturalBreaksManager.isSchedulerCleared) {
+    status = 'paused'
+    text = 'IDLE'
+  } else if (breakPlanner.appExclusionsManager.isSchedulerCleared) {
+    status = 'paused'
+    text = 'PAUSED'
   }
 
   let timeLeft = 0
@@ -556,6 +565,7 @@ function updateMiniStatusWindow () {
 
   miniStatusWin.webContents.send('update-status', {
     status,
+    text,
     targetTime: Date.now() + timeLeft,
     color: settings.get('mainColor')
   })

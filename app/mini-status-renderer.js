@@ -5,12 +5,12 @@ const labelElement = document.getElementById('label')
 let targetTime = null
 let status = 'running' // running, paused, break
 
-function updateTimer() {
+function updateTimer () {
   if (status !== 'running') return
 
   if (!targetTime) {
-     timerElement.innerText = '--:--'
-     return
+    timerElement.innerText = '--:--'
+    return
   }
 
   const now = Date.now()
@@ -33,17 +33,17 @@ window.electronApi.onUpdateStatus((event, data) => {
   targetTime = data.targetTime
 
   if (data.color) {
-     if (status === 'break') {
-         bubbleElement.style.backgroundColor = data.color
-     } else {
-         bubbleElement.style.backgroundColor = '' // Reset to CSS default
-     }
+    if (status === 'break') {
+      bubbleElement.style.backgroundColor = data.color
+    } else {
+      bubbleElement.style.backgroundColor = '' // Reset to CSS default
+    }
   }
 
   if (status === 'paused') {
     bubbleElement.classList.add('paused')
     bubbleElement.classList.remove('break')
-    timerElement.innerText = 'PAUSED'
+    timerElement.innerText = data.text || 'PAUSED'
     labelElement.style.display = 'none'
   } else if (status === 'break') {
     bubbleElement.classList.remove('paused')
