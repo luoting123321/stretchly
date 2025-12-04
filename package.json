@@ -104,7 +104,8 @@
       "target": [
         "nsis",
         "7z",
-        "appx"
+        "appx",
+        "msi"
       ],
       "asarUnpack": [
         "node_modules/windows-notification-state/**",
@@ -118,6 +119,10 @@
     "nsisWeb": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
+    },
+    "msi": {
+      "oneClick": false,
+      "perMachine": false
     }
   },
   "standard": {
