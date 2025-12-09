@@ -1690,6 +1690,10 @@ ipcMain.on('panel-close', () => {
   }
 })
 
+ipcMain.on('open-panel-from-mini-status', () => {
+  createPanelWindow()
+})
+
 ipcMain.handle('get-panel-status', () => {
   return getPanelStatus()
 })

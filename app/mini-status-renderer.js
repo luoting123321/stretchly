@@ -58,6 +58,11 @@ window.electronApi.onUpdateStatus((event, data) => {
   }
 })
 
+// Click on bubble to open panel
+bubbleElement.addEventListener('click', () => {
+  window.electronApi.openPanel()
+})
+
 // Start timer loop
 setInterval(updateTimer, 1000)
 updateTimer()
