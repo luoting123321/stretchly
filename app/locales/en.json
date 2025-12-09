@@ -25,6 +25,35 @@
     "contributorPreferences": "Contributor Preferences",
     "syncPreferences": "Sync Preferences"
   },
+  "panel": {
+    "title": "Stretchly Tasks",
+    "preferences": "Preferences",
+    "skipToMini": "Skip to Mini break",
+    "skipToLong": "Skip to Long break",
+    "pause": "Pause",
+    "resume": "Resume",
+    "quit": "Quit Stretchly",
+    "ready": "Ready",
+    "todaysPlan": "Today's Plan",
+    "timeLog": "Time Log",
+    "addTask": "Add today's task...",
+    "settings": "Settings",
+    "clearCompleted": "Clear completed",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "noTasks": "Add tasks to complete today"
+  },
+  "workLog": {
+    "title": "Work Log",
+    "breakFinished": "Break finished!",
+    "whatDidYouDo": "What did you do in the last hour?",
+    "placeholder": "e.g., Completed the first chapter of the project report...",
+    "quickSelect": "Quick select:",
+    "skip": "Skip",
+    "save": "Save",
+    "todaysPlan": "Today's Plan",
+    "noTasks": "No tasks set for today"
+  },
   "break": {
     "postpone": "Postpone this break",
     "skip": "Skip this break",

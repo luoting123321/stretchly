@@ -71,6 +71,8 @@ let contributorPreferencesWin = null
 let syncPreferencesWin = null
 let myStretchlyWin = null
 let miniStatusWin = null
+let panelWin = null
+let workLogWin = null
 let settings
 let pausedForSuspendOrLock = false
 let nextIdea = null
@@ -1090,6 +1092,10 @@ function finishMicrobreak (shouldPlaySound = true, shouldPlanNext = true) {
   log.info(`Stretchly: finishing Mini break (shouldPlanNext: ${shouldPlanNext})`)
   if (shouldPlanNext) {
     breakPlanner.nextBreak()
+    // Show work log window after break ends
+    if (settings.get('showWorkLogAfterBreak') !== false) {
+      setTimeout(() => createWorkLogWindow(), 500)
+    }
   } else {
     breakPlanner.clear()
   }
@@ -1101,6 +1107,10 @@ function finishBreak (shouldPlaySound = true, shouldPlanNext = true) {
   log.info(`Stretchly: finishing Long break (shouldPlanNext: ${shouldPlanNext})`)
   if (shouldPlanNext) {
     breakPlanner.nextBreak()
+    // Show work log window after break ends
+    if (settings.get('showWorkLogAfterBreak') !== false) {
+      setTimeout(() => createWorkLogWindow(), 500)
+    }
   } else {
     breakPlanner.clear()
   }
@@ -1262,6 +1272,100 @@ function createPreferencesWindow () {
   })
 }
 
+function createPanelWindow () {
+  if (panelWin) {
+    panelWin.show()
+    panelWin.focus()
+    return
+  }
+
+  const panelPath = 'file://' + join(__dirname, '/panel.html')
+  const panelWidth = 480
+  const panelHeight = 600
+
+  panelWin = new BrowserWindow({
+    width: panelWidth,
+    height: panelHeight,
+    frame: false,
+    resizable: true,
+    minWidth: 400,
+    minHeight: 500,
+    skipTaskbar: false,
+    alwaysOnTop: false,
+    show: false,
+    backgroundColor: '#1a1a2e',
+    webPreferences: {
+      preload: join(__dirname, './panel-preload.mjs'),
+      sandbox: false
+    }
+  })
+
+  panelWin.webContents.loadURL(panelPath)
+
+  panelWin.once('ready-to-show', () => {
+    panelWin.center()
+    panelWin.show()
+  })
+
+  panelWin.once('closed', () => {
+    panelWin = null
+  })
+}
+
+function getPanelStatus () {
+  const statusMessage = new StatusMessages({
+    breakPlanner,
+    settings,
+    i18next,
+    humanizeDuration
+  }).trayMessage
+
+  return {
+    statusText: statusMessage.split('\n')[0] || i18next.t('panel.ready'),
+    timeRemaining: statusMessage.split('\n')[1] || '',
+    isPaused: breakPlanner.isPaused,
+    isOnDnd: breakPlanner.dndManager.isOnDnd,
+    microbreakEnabled: settings.get('microbreak'),
+    breakEnabled: settings.get('break')
+  }
+}
+
+function createWorkLogWindow () {
+  if (workLogWin) {
+    workLogWin.show()
+    workLogWin.focus()
+    return
+  }
+
+  const workLogPath = 'file://' + join(__dirname, '/work-log.html')
+
+  workLogWin = new BrowserWindow({
+    width: 450,
+    height: 520,
+    frame: false,
+    resizable: false,
+    skipTaskbar: false,
+    alwaysOnTop: true,
+    show: false,
+    backgroundColor: '#1a1a2e',
+    webPreferences: {
+      preload: join(__dirname, './work-log-preload.mjs'),
+      sandbox: false
+    }
+  })
+
+  workLogWin.webContents.loadURL(workLogPath)
+
+  workLogWin.once('ready-to-show', () => {
+    workLogWin.center()
+    workLogWin.show()
+  })
+
+  workLogWin.once('closed', () => {
+    workLogWin = null
+  })
+}
+
 function updateTray () {
   if (process.platform === 'darwin') {
     if (app.dock.isVisible) {
@@ -1280,6 +1384,11 @@ function updateTray () {
         createPreferencesWindow()
       })
       appIcon.on('click', () => {
+        // Left click opens the panel
+        createPanelWindow()
+      })
+      appIcon.on('right-click', () => {
+        // Right click shows the context menu
         appIcon.popUpContextMenu(Menu.buildFromTemplate(currentTrayMenuTemplate))
       })
     }
@@ -1562,6 +1671,154 @@ ipcMain.on('save-setting', function (event, key, value) {
 
 ipcMain.on('update-tray', function (event) {
   updateTray()
+})
+
+// Panel IPC handlers
+ipcMain.on('open-preferences', () => {
+  createPreferencesWindow()
+})
+
+ipcMain.on('panel-minimize', () => {
+  if (panelWin) {
+    panelWin.minimize()
+  }
+})
+
+ipcMain.on('panel-close', () => {
+  if (panelWin) {
+    panelWin.close()
+  }
+})
+
+ipcMain.handle('get-panel-status', () => {
+  return getPanelStatus()
+})
+
+// Task Management IPC handlers
+ipcMain.handle('get-tasks', () => {
+  const today = new Date().toDateString()
+  const allTasks = settings.get('tasks') || {}
+  return allTasks[today] || []
+})
+
+ipcMain.handle('add-task', (event, task) => {
+  const today = new Date().toDateString()
+  const allTasks = settings.get('tasks') || {}
+  const todayTasks = allTasks[today] || []
+
+  const newTask = {
+    id: Date.now().toString(),
+    ...task
+  }
+
+  todayTasks.unshift(newTask)
+  allTasks[today] = todayTasks
+  settings.set('tasks', allTasks)
+
+  // Clean up old tasks (keep only last 7 days)
+  cleanupOldTasks()
+
+  return newTask
+})
+
+ipcMain.handle('update-task', (event, taskId, updates) => {
+  const today = new Date().toDateString()
+  const allTasks = settings.get('tasks') || {}
+  const todayTasks = allTasks[today] || []
+
+  const taskIndex = todayTasks.findIndex(t => t.id === taskId)
+  if (taskIndex !== -1) {
+    todayTasks[taskIndex] = { ...todayTasks[taskIndex], ...updates }
+    allTasks[today] = todayTasks
+    settings.set('tasks', allTasks)
+  }
+
+  return todayTasks[taskIndex]
+})
+
+ipcMain.handle('delete-task', (event, taskId) => {
+  const today = new Date().toDateString()
+  const allTasks = settings.get('tasks') || {}
+  const todayTasks = allTasks[today] || []
+
+  const filtered = todayTasks.filter(t => t.id !== taskId)
+  allTasks[today] = filtered
+  settings.set('tasks', allTasks)
+
+  return true
+})
+
+ipcMain.handle('clear-completed-tasks', () => {
+  const today = new Date().toDateString()
+  const allTasks = settings.get('tasks') || {}
+  const todayTasks = allTasks[today] || []
+
+  const filtered = todayTasks.filter(t => !t.completed)
+  allTasks[today] = filtered
+  settings.set('tasks', allTasks)
+
+  return true
+})
+
+// Hourly Log IPC handlers
+ipcMain.handle('get-logs', () => {
+  const allLogs = settings.get('hourlyLogs') || []
+  return allLogs
+})
+
+ipcMain.handle('add-log', (event, log) => {
+  const allLogs = settings.get('hourlyLogs') || []
+
+  const newLog = {
+    id: Date.now().toString(),
+    timestamp: new Date().toISOString(),
+    ...log
+  }
+
+  allLogs.unshift(newLog)
+
+  // Keep only last 100 logs
+  if (allLogs.length > 100) {
+    allLogs.length = 100
+  }
+
+  settings.set('hourlyLogs', allLogs)
+
+  // Notify panel if open
+  if (panelWin) {
+    panelWin.webContents.send('logs-updated')
+  }
+
+  return newLog
+})
+
+function cleanupOldTasks () {
+  const allTasks = settings.get('tasks') || {}
+  const cutoffDate = new Date()
+  cutoffDate.setDate(cutoffDate.getDate() - 7)
+
+  const cleanedTasks = {}
+  for (const dateStr of Object.keys(allTasks)) {
+    const taskDate = new Date(dateStr)
+    if (taskDate >= cutoffDate) {
+      cleanedTasks[dateStr] = allTasks[dateStr]
+    }
+  }
+
+  settings.set('tasks', cleanedTasks)
+}
+
+// Work Log Window IPC handlers
+ipcMain.on('work-log-close', () => {
+  if (workLogWin) {
+    workLogWin.close()
+  }
+})
+
+ipcMain.on('work-log-skip', () => {
+  if (workLogWin) {
+    workLogWin.close()
+  }
 })
 
 ipcMain.on('restore-defaults', (event) => {

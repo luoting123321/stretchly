@@ -25,6 +25,35 @@
     "contributorPreferences": "贡献者偏好设置",
     "syncPreferences": "同步偏好设置"
   },
+  "panel": {
+    "title": "Stretchly 任务",
+    "preferences": "偏好设置",
+    "skipToMini": "跳到小憩",
+    "skipToLong": "跳到休息",
+    "pause": "暂停",
+    "resume": "恢复",
+    "quit": "退出 Stretchly",
+    "ready": "准备就绪",
+    "todaysPlan": "今日计划",
+    "timeLog": "时间记录",
+    "addTask": "添加今日任务...",
+    "settings": "设置",
+    "clearCompleted": "清除已完成",
+    "expand": "展开",
+    "collapse": "收起",
+    "noTasks": "添加今天要完成的任务"
+  },
+  "workLog": {
+    "title": "工作记录",
+    "breakFinished": "休息结束！",
+    "whatDidYouDo": "这一小时你做了什么？",
+    "placeholder": "例如：完成了项目报告的第一章...",
+    "quickSelect": "快速选择：",
+    "skip": "跳过",
+    "save": "保存记录",
+    "todaysPlan": "今日计划",
+    "noTasks": "今天还没有设定任务"
+  },
   "break": {
     "postpone": "延后此次休息",
     "skip": "跳过此次休息",

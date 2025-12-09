@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Stretchly Tasks</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <link rel="stylesheet" type="text/css" href="css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="css/panel.css">
+</head>
+
+<body>
+  <div class="panel-container">
+    <!-- Title Bar -->
+    <div class="title-bar">
+      <div class="title-bar-drag">
+        <img src="images/stretchly.svg" alt="Logo" class="title-logo">
+        <span class="title-text">Stretchly Tasks</span>
+      </div>
+      <div class="title-bar-buttons">
+        <button class="title-btn minimize-btn" id="btn-minimize">─</button>
+        <button class="title-btn close-btn" id="btn-close">✕</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Today's Date -->
+      <div class="date-header">
+        <span class="date-label" id="today-date"></span>
+        <span class="status-badge" id="status-badge"></span>
+      </div>
+
+      <!-- Add Task Section -->
+      <div class="add-task-section">
+        <input type="text" id="task-input" class="task-input" placeholder="添加今日任务..." />
+        <button class="add-btn" id="btn-add-task">+</button>
+      </div>
+
+      <!-- Today's Tasks -->
+      <div class="tasks-section">
+        <div class="section-header">
+          <span class="section-title">📋 今日计划</span>
+          <span class="task-count" id="task-count">0</span>
+        </div>
+        <div class="tasks-list" id="tasks-list">
+          <!-- Tasks will be rendered here -->
+        </div>
+      </div>
+
+      <!-- Hourly Log Section -->
+      <div class="log-section">
+        <div class="section-header">
+          <span class="section-title">⏰ 时间记录</span>
+          <button class="expand-btn" id="btn-toggle-log">展开</button>
+        </div>
+        <div class="log-list hidden" id="log-list">
+          <!-- Hourly logs will be rendered here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="bottom-actions">
+      <button class="action-btn" id="btn-preferences">
+        <span class="btn-icon">⚙️</span>
+        <span>设置</span>
+      </button>
+      <button class="action-btn" id="btn-clear-completed">
+        <span class="btn-icon">🗑️</span>
+        <span>清除已完成</span>
+      </button>
+    </div>
+  </div>
+  <script type="module" src="./panel-renderer.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>工作记录</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <link rel="stylesheet" type="text/css" href="css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="css/work-log.css">
+</head>
+
+<body>
+  <div class="work-log-container">
+    <div class="header">
+      <div class="header-icon">⏰</div>
+      <h1>休息结束！</h1>
+      <p class="subtitle">记录一下过去一小时你完成了什么</p>
+    </div>
+
+    <!-- Today's Tasks Reference -->
+    <div class="tasks-reference">
+      <div class="reference-header">
+        <span class="reference-title">📋 今日计划</span>
+      </div>
+      <div class="tasks-preview" id="tasks-preview">
+        <!-- Tasks will be rendered here -->
+      </div>
+    </div>
+
+    <!-- Work Log Input -->
+    <div class="log-input-section">
+      <label class="input-label">这一小时你做了什么？</label>
+      <textarea id="work-log-input" class="log-textarea" placeholder="例如：完成了项目报告的第一章..."></textarea>
+      
+      <div class="quick-select">
+        <span class="quick-label">快速选择：</span>
+        <div class="quick-buttons" id="quick-buttons">
+          <!-- Quick select buttons will be rendered here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn btn-secondary" id="btn-skip">跳过</button>
+      <button class="btn btn-primary" id="btn-save">保存记录</button>
+    </div>
+  </div>
+  <script type="module" src="./work-log-renderer.js"></script>
+</body>
+
+</html>
+
